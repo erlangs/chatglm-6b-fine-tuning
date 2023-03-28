@@ -1,15 +1,13 @@
-# 在这里控制要使用的显卡
 import os
 
+# 在这里控制要使用的显卡
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-
-# %%
 from MyTrainer import Trainer
 from transformers import TrainingArguments
 from transformers import DataCollatorForLanguageModeling
 import random
 from glob import glob
-from datasets import load_dataset, DatasetDict
+from datasets import load_dataset
 from transformers import AutoTokenizer, AutoModel
 from peft import get_peft_model, LoraConfig, TaskType
 
@@ -17,34 +15,21 @@ from peft import get_peft_model, LoraConfig, TaskType
 DATASETS_PATH = "./data2/*"
 # 原始发布的预训练模型目录
 PRE_TRAINED_MODEL_PATH = "G:\idea_work2\chatglm-6b"
-
-# %%
 tokenizer = AutoTokenizer.from_pretrained(PRE_TRAINED_MODEL_PATH, trust_remote_code=True)
 model = AutoModel.from_pretrained(PRE_TRAINED_MODEL_PATH, trust_remote_code=True).half().cuda()
-
-# %%
 peft_config = LoraConfig(
-    task_type=TaskType.CAUSAL_LM,
-    inference_mode=False, r=8, lora_alpha=32, lora_dropout=0.1,
-    # ['dense','dense_h_to_4h','dense_4h_to_h'] # 'query_key_value',
+    task_type=TaskType.CAUSAL_LM, inference_mode=False, r=8, lora_alpha=32, lora_dropout=0.1,
     target_modules=['query_key_value', ],
 )
 model = get_peft_model(model, peft_config)
-
-# %%
 random.seed(42)
-
 all_file_list = glob(pathname=DATASETS_PATH)
 test_file_list = random.sample(all_file_list, 50)
 train_file_list = [i for i in all_file_list if i not in test_file_list]
 
-# len(train_file_list), len(test_file_list)
+raw_datasets = load_dataset("csv", data_files={'train': train_file_list, 'valid': test_file_list},
+                            cache_dir="cache_data")
 
-# %%
-raw_datasets = load_dataset("csv", data_files={
-    'train': train_file_list, 'valid': test_file_list}, cache_dir="cache_data")
-
-# %%
 context_length = 512
 
 
@@ -63,16 +48,8 @@ def tokenize(element):
     return {"input_ids": input_batch}
 
 
-tokenized_datasets = raw_datasets.map(
-    tokenize, batched=True, remove_columns=raw_datasets["train"].column_names
-)
-tokenized_datasets
-
-# %%
+tokenized_datasets = raw_datasets.map(tokenize, batched=True, remove_columns=raw_datasets["train"].column_names)
 data_collator = DataCollatorForLanguageModeling(tokenizer, mlm=False)
-
-# %%
-
 args = TrainingArguments(
     output_dir="test003",
     per_device_train_batch_size=1,  # 如果在24G显存上的显卡，可以开到4
@@ -90,7 +67,6 @@ args = TrainingArguments(
     fp16=True,
     push_to_hub=False,
 )
-
 trainer = Trainer(
     model=model,
     tokenizer=tokenizer,
