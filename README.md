@@ -12,7 +12,7 @@
 - 3、修改 chat_interact.py 中的 PRE_TRAINED_MODEL_PATH='上面克隆的chatglm-6b文件夹路径'
 - 4、运行代码 python3 chat_interact.py
 - 5、生成效果如下：
-  回答问题
+      回答问题
     - ![1.png](images%2F1.png)
       做数学题
     - ![2.png](images%2F2.png)
