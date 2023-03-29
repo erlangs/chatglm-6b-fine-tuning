@@ -54,7 +54,7 @@ def start_train(run_args):
     data_collator = DataCollatorForLanguageModeling(tokenizer, mlm=False)
     args = TrainingArguments(
         output_dir=run_args.save_model_path,
-        per_device_train_batch_size=3,  # 如果在24G显存上的显卡，可以开到4
+        per_device_train_batch_size=2,  # 如果在24G显存上的显卡，可以开到4
         per_device_eval_batch_size=2,
         evaluation_strategy="steps",
         eval_steps=100,
