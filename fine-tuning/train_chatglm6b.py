@@ -7,6 +7,9 @@ from glob import glob
 from datasets import load_dataset
 from transformers import AutoTokenizer, AutoModel
 from peft import get_peft_model, LoraConfig, TaskType
+import torch
+
+torch.backends.cuda.matmul.allow_tf32 = True
 
 
 def tokenize(element):
@@ -49,18 +52,19 @@ def start_train(run_args):
     test_file_list = random.sample(all_file_list, int(len(all_file_list) * 0.05))
     train_file_list = [i for i in all_file_list if i not in test_file_list]
     raw_datasets = load_dataset("csv", data_files={'train': train_file_list, 'valid': test_file_list},
-                                cache_dir="cache_data")
+                                cache_dir="cache_data", keep_in_memory=True)
     tokenized_datasets = raw_datasets.map(tokenize, batched=True, remove_columns=raw_datasets["train"].column_names)
     data_collator = DataCollatorForLanguageModeling(tokenizer, mlm=False)
     args = TrainingArguments(
         output_dir=run_args.save_model_path,
-        per_device_train_batch_size=2,  # 如果在24G显存上的显卡，可以开到4
+        per_device_train_batch_size=2,  # 如果在24G显存以上的显卡，可以开到4
         per_device_eval_batch_size=2,
         evaluation_strategy="steps",
         eval_steps=100,
         logging_steps=100,
         gradient_accumulation_steps=8,
-        num_train_epochs=1,
+        gradient_checkpointing=True,
+        num_train_epochs=100,
         weight_decay=0.1,
         warmup_steps=1_000,
         lr_scheduler_type="cosine",
