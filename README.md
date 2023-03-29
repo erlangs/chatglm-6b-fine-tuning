@@ -1,6 +1,9 @@
 ### 查看此文档，你将学到什么?
+
 + 1 如何部署运行chatglm-6b
 + 2 如何微调模型
+
+#### 在此感谢 https://github.com/yuanzhoulvpi2017/zero_nlp/tree/main/simple_thu_chatglm6b,参考了up主的成果，自己稍微修改了一下
 
 #### 如何部署运行chatglm-6b?
 
@@ -12,7 +15,7 @@
 - 3、修改 chat_interact.py 中的 PRE_TRAINED_MODEL_PATH='上面克隆的chatglm-6b文件夹路径'
 - 4、运行代码 python3 chat_interact.py
 - 5、生成效果如下：
-      回答问题
+  回答问题
     - ![1.png](images%2F1.png)
       做数学题
     - ![2.png](images%2F2.png)
@@ -33,8 +36,10 @@
         - 旅游向导
 
 #### 如何微调chatglm-6b?
+
 + 1 准备数据集
-+ 2 运行train_chatglm6b.py 训练代码
++ 2 运行start_train.sh 训练代码,我用了4张P40
++  ![train.png](images%2Ftrain.png)
 
 #### 文件结构说明
 
@@ -42,13 +47,15 @@
 + chat_server.py 连接数据库，根据数据表对话内容，排队进行回答，并将生成内容回写到表，它依赖我写的数据库连接组件，另外还有一个http服务接收前端请求。
 + start_chat_server.sh 启动chat_server.py
 + data2 训练数据集
-+ train_chatglm6b.py 训练代码
-  ~~~
-  训练需要安装如下依赖
-  pip3 install datasets
-  pip3 install peft
-  ~~~
-  
++ fine-tuning 训练代码目录
+    - pre-trained-model 预训练的模型文件存储目录，这里面不包含.bin文件，需要将bin复制进来，当然这个目录你也可以放到其它任意位置。
+      ~~~
+      训练需要安装如下依赖
+      pip3 install datasets
+      pip3 install peft
+      ~~~
++ start_train.sh 训练shell
+
 #### 环境说明
 
 + 系统版本：CentOS Linux release 7.9.2009 (Core)
@@ -57,4 +64,4 @@
 + NVIDIA驱动版本： 515.65.01
 + CUDA 版本：11.7
 + cuDNN 版本：v8.8.0
-+ GPU：3090 24GB
++ GPU：P40 24gb * 8 
