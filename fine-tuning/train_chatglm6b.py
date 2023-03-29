@@ -30,6 +30,8 @@ def set_args():
     parser.add_argument('--dataset_path', default='./data2/*', type=str, required=False, help='数据集目录')
     parser.add_argument('--model_path', default="../chatglm-6b", type=str, required=False,
                         help='原始发布的预训练模型目录')
+    parser.add_argument('--save_model_path', default="../save_model_path", type=str, required=False,
+                        help='微调模型保存目录')
     return parser.parse_args()
 
 
@@ -51,9 +53,9 @@ def start_train(run_args):
     tokenized_datasets = raw_datasets.map(tokenize, batched=True, remove_columns=raw_datasets["train"].column_names)
     data_collator = DataCollatorForLanguageModeling(tokenizer, mlm=False)
     args = TrainingArguments(
-        output_dir="test003",
-        per_device_train_batch_size=1,  # 如果在24G显存上的显卡，可以开到4
-        per_device_eval_batch_size=1,
+        output_dir=run_args.save_model_path,
+        per_device_train_batch_size=3,  # 如果在24G显存上的显卡，可以开到4
+        per_device_eval_batch_size=2,
         evaluation_strategy="steps",
         eval_steps=100,
         logging_steps=100,
