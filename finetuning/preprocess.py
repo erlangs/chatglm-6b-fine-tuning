@@ -13,7 +13,6 @@ target_dir_list = ['G:\\idea_work2\\alpaca_chinese_dataset-main\\其他中文问
 
 all_json_path = [glob(i + "*.json") for i in target_dir_list]
 all_json_path = list(chain(*all_json_path))
-len(all_json_path), all_json_path[:5]
 
 
 def read_json(x: str):

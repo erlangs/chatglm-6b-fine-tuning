@@ -151,7 +151,8 @@ def start_train(run_args):
     model = get_peft_model(model, peft_config)
     random.seed(42)
     all_file_list = glob(pathname=run_args.dataset_path)
-    test_file_list = random.sample(all_file_list, int(len(all_file_list) * 0.25))
+    test_file_list = random.sample(all_file_list,
+                                   int(1 if (len(all_file_list) * 0.25 < 1) else len(all_file_list) * 0.25))
     train_file_list = [i for i in all_file_list if i not in test_file_list]
     dataset = load_dataset(
         "csv",
