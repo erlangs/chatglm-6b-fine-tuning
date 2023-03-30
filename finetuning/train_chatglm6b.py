@@ -61,13 +61,13 @@ def start_train(run_args):
     data_collator = DataCollatorForLanguageModeling(tokenizer, mlm=False)
     args = TrainingArguments(
         output_dir=run_args.save_model_path,
-        per_device_train_batch_size=2,  # 如果在24G显存以上的显卡，可以开到4
-        per_device_eval_batch_size=2,
+        per_device_train_batch_size=1,  # 如果在24G显存以上的显卡，可以开到4
+        per_device_eval_batch_size=1,
         evaluation_strategy="steps",
         eval_steps=50,
         logging_steps=50,
-        gradient_accumulation_steps=8,
-        num_train_epochs=50,
+        gradient_accumulation_steps=4,
+        num_train_epochs=20,
         weight_decay=0.1,
         warmup_steps=1_000,
         lr_scheduler_type="cosine",
