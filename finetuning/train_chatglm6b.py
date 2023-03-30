@@ -2,7 +2,6 @@ import os
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "1,2,3,4"
-
 from MyTrainer import Trainer
 from transformers import TrainingArguments
 from transformers import DataCollatorForLanguageModeling
@@ -54,7 +53,7 @@ def start_train(run_args):
     model = get_peft_model(model, peft_config)
     random.seed(42)
     all_file_list = glob(pathname=run_args.dataset_path)
-    test_file_list = random.sample(all_file_list, int(len(all_file_list) * 0.05))
+    test_file_list = random.sample(all_file_list, int(len(all_file_list) / 10))
     train_file_list = [i for i in all_file_list if i not in test_file_list]
     raw_datasets = load_dataset("csv", data_files={'train': train_file_list, 'valid': test_file_list},
                                 cache_dir="cache_data", keep_in_memory=True)
@@ -65,16 +64,15 @@ def start_train(run_args):
         per_device_train_batch_size=2,  # 如果在24G显存以上的显卡，可以开到4
         per_device_eval_batch_size=2,
         evaluation_strategy="steps",
-        eval_steps=100,
-        logging_steps=100,
+        eval_steps=50,
+        logging_steps=50,
         gradient_accumulation_steps=8,
-        gradient_checkpointing=True,
-        num_train_epochs=100,
+        num_train_epochs=50,
         weight_decay=0.1,
         warmup_steps=1_000,
         lr_scheduler_type="cosine",
         learning_rate=5e-4,
-        save_steps=100,
+        save_steps=50,
         fp16=True,
         push_to_hub=False,
     )

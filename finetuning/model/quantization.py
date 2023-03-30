@@ -31,7 +31,7 @@ class W8A16Linear(torch.autograd.Function):
         grad_input = grad_output.mm(weight)
         from torch.cuda.amp import autocast as autocast
         with autocast():
-            grad_weight = grad_output.t().mm(inp)
+            grad_weight =grad_output.t().mm(inp)
         # grad_weight = grad_output.t().to(torch.float32).mm(inp.to(torch.float32)).to(grad_input.dtype)
         return grad_input.view(ctx.inp_shape), grad_weight.view(ctx.weight_shape), None, None
 

@@ -22,10 +22,10 @@ PRETRAINED_POSITIONAL_EMBEDDINGS_SIZES = {
 
 class SPTokenizer:
     def __init__(
-            self,
-            vocab_file,
-            max_blank_length=80,
-            byte_fallback=True,
+        self,
+        vocab_file,
+        max_blank_length=80,
+        byte_fallback=True,
     ):
         assert vocab_file is not None
         self.vocab_file = vocab_file
@@ -37,11 +37,11 @@ class SPTokenizer:
 
     @staticmethod
     def _configure_tokenizer(
-            text_tokenizer: TextTokenizer,
-            special_tokens: List[str],
-            max_blank_length: int,
-            byte_fallback: bool,
-            encode_special_tokens=False,
+        text_tokenizer: TextTokenizer,
+        special_tokens: List[str],
+        max_blank_length: int,
+        byte_fallback: bool,
+        encode_special_tokens=False,
     ):
         # special token
         special_token_type = 4 if encode_special_tokens else 3  # 3 - CONTROL, 4 - USER_DEFINE
@@ -112,7 +112,7 @@ class SPTokenizer:
         return text
 
     def encode(
-            self, text: str, linebreak=True, whitespaces=True, special_tokens=False, add_dummy_prefix=True
+        self, text: str, linebreak=True, whitespaces=True, special_tokens=False, add_dummy_prefix=True
     ) -> List[int]:
         """
         @param text: Text to encode.
@@ -138,7 +138,7 @@ class SPTokenizer:
         return text
 
     def tokenize(
-            self, text: str, linebreak=True, whitespaces=True, special_tokens=False, add_dummy_prefix=True
+        self, text: str, linebreak=True, whitespaces=True, special_tokens=False, add_dummy_prefix=True
     ) -> List[str]:
         """
         @param text: Text to encode.
