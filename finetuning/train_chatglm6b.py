@@ -12,10 +12,6 @@ from transformers import AutoTokenizer, AutoModel
 from peft import get_peft_model, LoraConfig, TaskType
 import torch
 
-torch.backends.cuda.matmul.allow_tf32 = True
-
-max_seq_length = 512
-
 
 def get_masks_and_position_ids(
         seq, seq_len, context_length, device, gmask=False, position_encoding_2d=True
@@ -114,6 +110,7 @@ def data_collator(features: list) -> dict:
 
 
 def preprocess(example):
+    max_seq_length = 512
     prompt = example["context"]
     target = example["target"]
     prompt_ids = tokenizer.encode(prompt, max_length=max_seq_length, truncation=True)
@@ -142,6 +139,7 @@ def filter_nan(example):
 
 def start_train(run_args):
     global tokenizer
+    global model
     tokenizer = AutoTokenizer.from_pretrained(run_args.model_path, trust_remote_code=True)
     model = AutoModel.from_pretrained(run_args.model_path, trust_remote_code=True).half().cuda()
     peft_config = LoraConfig(
@@ -149,11 +147,18 @@ def start_train(run_args):
         target_modules=['query_key_value', ],
     )
     model = get_peft_model(model, peft_config)
+
     random.seed(42)
     all_file_list = glob(pathname=run_args.dataset_path)
     test_file_list = random.sample(all_file_list,
                                    int(1 if (len(all_file_list) * 0.25 < 1) else len(all_file_list) * 0.25))
     train_file_list = [i for i in all_file_list if i not in test_file_list]
+    if len(train_file_list) <= 0:
+        train_file_list = test_file_list
+
+    print("train_file_list:", str(train_file_list))
+    print("test_file_list:", str(test_file_list))
+
     dataset = load_dataset(
         "csv",
         data_files={
