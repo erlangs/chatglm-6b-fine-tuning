@@ -26,17 +26,17 @@ def read_json(x: str):
 
 alldata = pd.concat([read_json(i) for i in all_json_path])
 
-genrate_data_dir = "../../data"
-genrate_data_dir = Path(genrate_data_dir)
+generate_date_dir = "g:\\data"
+generate_date_dir = Path(generate_date_dir)
 
-if genrate_data_dir.exists():
-    shutil.rmtree(genrate_data_dir, ignore_errors=True)
+if generate_date_dir.exists():
+    shutil.rmtree(generate_date_dir, ignore_errors=True)
 
-os.makedirs(genrate_data_dir, exist_ok=True)
+os.makedirs(generate_date_dir, exist_ok=True)
 alldata = alldata.sample(frac=1).reset_index(drop=True)
 
 chunk_size = 666
 
 for index, start_id in tqdm(enumerate(range(0, alldata.shape[0], chunk_size))):
     temp_data = alldata.iloc[start_id:(start_id + chunk_size)]
-    temp_data.to_csv(genrate_data_dir.joinpath(f"{index}.csv"), index=False)
+    temp_data.to_csv(generate_date_dir.joinpath(f"{index}.csv"), index=False)
