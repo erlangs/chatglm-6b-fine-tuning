@@ -1,3 +1,6 @@
+import os
+from typing import Optional
+
 from MyTrainer import Trainer
 from transformers import TrainingArguments
 import random
@@ -131,6 +134,24 @@ def format_example(example: dict) -> dict:
 
 def filter_nan(example):
     return example['target'] is not None and example['context'] is not None
+
+
+class MyTrainer(Trainer):
+    def _save(self, output_dir: Optional[str] = None, state_dict=None):
+        # If we are executing this function, we are the process zero, so we don't check for that.
+        output_dir = output_dir if output_dir is not None else self.args.output_dir
+        os.makedirs(output_dir, exist_ok=True)
+
+        def save_tunable_parameters(model, path):
+            saved_params = {
+                k: v.to("cpu") for k, v in model.named_parameters() if v.requires_grad
+            }
+            # saved_params = model.state_dict()
+            torch.save(saved_params, path)
+
+        save_tunable_parameters(
+            self.model, os.path.join(output_dir, "chatglm-lora.pt")
+        )
 
 
 def start_train(run_args):
