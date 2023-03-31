@@ -5,7 +5,7 @@ import os
     生成测试json文件
     author:chen.yiwan
 """
-json_file_path = "../data/idigital.json"
+json_file_path = "../data/idigital_1.json"
 train_json = []
 for i in range(1500):
     train_json.append({'instruction': 'who are you,who you are', 'input': '你是谁',
