@@ -173,9 +173,6 @@ def start_train(run_args):
     if len(train_file_list) <= 0:
         train_file_list = test_file_list
 
-    print("train_file_list:", str(train_file_list))
-    print("test_file_list:", str(test_file_list))
-
     dataset = load_dataset(
         "csv",
         data_files={
