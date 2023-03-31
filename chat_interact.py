@@ -23,6 +23,9 @@ def main():
             input_txt = input("user:")
             response, history = model.chat(tokenizer, input_txt, history=history)
             print("bot:", response)
+            # 连续对话
+            historyTuple = (input_txt, response)
+            history.append(historyTuple)
             torch.cuda.empty_cache()
         except:
             break
