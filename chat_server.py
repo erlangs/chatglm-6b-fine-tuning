@@ -17,7 +17,7 @@ def start_process_question():
                 "开始处理==========>>> Session:" + session + ",问题ID:" + qid + ",机器人类型:" + bot_type + ",问题:" + question_str + ",q_seq:" + str(
                     q_seq))
             dbutil.update_question_status(qid, session, "002", q_seq)
-            answer = get_response_by_bot(question_str)
+            answer = get_response_by_bot(question_str, session, args.bot_type, args.sub_type)
             dbutil.update_question_answer_count(qid, session, q_seq, 3)
             # 更新数据表
             dbutil.update_question_answer(qid, session, "003", answer, "", "", q_seq)
@@ -33,9 +33,16 @@ def set_args():
     return parser.parse_args()
 
 
-def get_response_by_bot(input_txt):
+def get_response_by_bot(input_txt, session, bot_type, sub_type):
+    # 这里需要解决，每个用户不能连续对话的问题,从数据库里获取这个用户前三个问题和回答是什么
     history = []
-    response, history = model.chat(tokenizer, input_txt, history=history)
+    historyQATuple = dbutil.query_question_list_by_session(session, bot_type, sub_type)
+    calc_len = len(input_txt)
+    for tmp in historyQATuple:
+        qaTuple = (tmp[0], tmp[1])
+        calc_len = calc_len + len(tmp[0]) + len(tmp[1])
+        history.append(qaTuple)
+    response, history = model.chat(tokenizer, input_txt, history=history, max_length=calc_len * 5)
     torch.cuda.empty_cache()
     return response
 
