@@ -4,6 +4,7 @@ import os
 """
     生成测试json文件
     author:chen.yiwan
+    date:2023-03-31
 """
 json_file_path = "../data/idigital_1.json"
 train_json = []

@@ -2,7 +2,11 @@ from transformers import AutoTokenizer
 from model.modeling_chatglm import ChatGLMForConditionalGeneration
 import torch
 from peft import get_peft_model, LoraConfig, TaskType
-
+"""
+    测试微调后的AI模型
+    author:chen.yiwan
+    date:2023-03-31
+"""
 model = ChatGLMForConditionalGeneration.from_pretrained("./model")
 
 peft_config = LoraConfig(
