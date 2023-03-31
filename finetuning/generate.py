@@ -16,12 +16,12 @@ peft_config = LoraConfig(
 )
 model = get_peft_model(model, peft_config)
 
-peft_path = "G:\\save_model\\chatglm-lora.pt"
+peft_path = "G:\\6b_test\\checkpoint-50\\chatglm-lora.pt"
 model.load_state_dict(torch.load(peft_path), strict=False)
 model.eval()
 
 tokenizer = AutoTokenizer.from_pretrained("./model", trust_remote_code=True)
-text = "？"
+text = "你是谁"
 
 with torch.autocast("cuda"):
     res, history = model.chat(tokenizer=tokenizer, query=text, max_length=300)
