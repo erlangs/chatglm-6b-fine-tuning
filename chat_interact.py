@@ -18,14 +18,15 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(PRE_TRAINED_MODEL_PATH, trust_remote_code=True)
     model = AutoModel.from_pretrained(PRE_TRAINED_MODEL_PATH, trust_remote_code=True).half().cuda()
     history = []
+    calc_len = 0
     while True:
         try:
             input_txt = input("user:")
-            response, history = model.chat(tokenizer, input_txt, history=history)
+            response, history = model.chat(tokenizer, input_txt, history=history, max_length=calc_len * 10)
+            qaTuple = (input_txt, response)
+            calc_len = calc_len + len(qaTuple[0]) + len(qaTuple[1])
+            history.append(qaTuple)
             print("bot:", response)
-            # 连续对话
-            historyTuple = (input_txt, response)
-            history.append(historyTuple)
             torch.cuda.empty_cache()
         except:
             break
