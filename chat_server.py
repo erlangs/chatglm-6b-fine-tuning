@@ -8,6 +8,12 @@ import argparse
 # 开始处理问题列表，并生成内容回写到表
 def start_process_question():
     print("服务已启动...")
+    # 1.处理上次未回答完成或异常终止的问题
+    excep_list = dbutil.query_question_list("002", args.bot_type, args.sub_type)
+    for excep in excep_list:
+        session, qid, bot_type, question_str, q_seq = excep[0], excep[1], excep[2], excep[3], excep[4]
+        dbutil.update_question_status(qid, session, "001", q_seq)
+
     while True:
         question_list = dbutil.query_question_list("001", args.bot_type, args.sub_type)
         for question in question_list:
