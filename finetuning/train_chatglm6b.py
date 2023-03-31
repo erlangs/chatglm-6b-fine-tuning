@@ -183,8 +183,8 @@ def start_train(run_args):
 
     args = TrainingArguments(
         output_dir=run_args.save_model_path,
-        per_device_train_batch_size=1,  # 如果在24G显存以上的显卡，可以开到4
-        per_device_eval_batch_size=1,
+        per_device_train_batch_size=run_args.batch_size,  # 如果在24G显存以上的显卡，可以开到4
+        per_device_eval_batch_size=4,
         evaluation_strategy="steps",
         eval_steps=50,
         logging_steps=50,
@@ -214,10 +214,9 @@ def start_train(run_args):
 def set_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset_path', default='./data/*', type=str, required=False, help='数据集目录')
-    parser.add_argument('--model_path', default="../chatglm-6b", type=str, required=False,
-                        help='原始发布的预训练模型目录')
-    parser.add_argument('--save_model_path', default="../save_model_path", type=str, required=False,
-                        help='微调模型保存目录')
+    parser.add_argument('--model_path', default="../chatglm-6b", type=str, required=False, help='原始发布的预训练模型目录')
+    parser.add_argument('--save_model_path', default="../save_model_path", type=str, required=False, help='微调模型保存目录')
+    parser.add_argument('--batch_size', default="4", type=int, required=False, help='batch_size')
     parser.add_argument('--fp16', action='store_true', help='fp16')
     return parser.parse_args()
 
