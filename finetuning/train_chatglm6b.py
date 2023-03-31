@@ -163,20 +163,20 @@ def start_train(run_args):
 
     random.seed(42)
     all_file_list = glob(pathname=run_args.dataset_path)
-    test_file_list = random.sample(all_file_list,
-                                   int(1 if (len(all_file_list) * 0.25 < 1) else len(all_file_list) * 0.25))
+    test_file_list = random.sample(all_file_list, int(1 if (len(all_file_list) * 0.05 < 1) else len(all_file_list) * 0.05))
     train_file_list = [i for i in all_file_list if i not in test_file_list]
     if len(train_file_list) <= 0:
         train_file_list = test_file_list
 
     dataset = load_dataset(
-        "csv",
+        "json",
         data_files={
             'train': train_file_list,
             'valid': test_file_list
         },
         cache_dir="cache_data"
     )
+    print(str(dataset))
     tokenized_datasets = dataset.map(function=format_example, remove_columns=dataset['train'].column_names).filter(
         function=filter_nan)
     tokenized_datasets = tokenized_datasets.map(function=preprocess)
@@ -214,8 +214,10 @@ def start_train(run_args):
 def set_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset_path', default='./data/*', type=str, required=False, help='数据集目录')
-    parser.add_argument('--model_path', default="../chatglm-6b", type=str, required=False, help='原始发布的预训练模型目录')
-    parser.add_argument('--save_model_path', default="../save_model_path", type=str, required=False, help='微调模型保存目录')
+    parser.add_argument('--model_path', default="../chatglm-6b", type=str, required=False,
+                        help='原始发布的预训练模型目录')
+    parser.add_argument('--save_model_path', default="../save_model_path", type=str, required=False,
+                        help='微调模型保存目录')
     parser.add_argument('--batch_size', default="4", type=int, required=False, help='batch_size')
     parser.add_argument('--fp16', action='store_true', help='fp16')
     return parser.parse_args()

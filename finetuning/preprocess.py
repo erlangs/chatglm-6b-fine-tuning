@@ -6,10 +6,7 @@ from itertools import chain
 from tqdm import tqdm
 from pathlib import Path
 
-target_dir_list = ['G:\\idea_work2\\alpaca_chinese_dataset-main\\其他中文问题补充\\',
-                   'G:\\idea_work2\\alpaca_chinese_dataset-main\\alpaca_chinese_dataset\\翻译后的中文数据\\',
-                   'G:\\idea_work2\\alpaca_chinese_dataset-main\\alpaca_chinese_dataset\\chatglm问题数据补充\\'
-                   ]
+target_dir_list = ['G:\\idea_work2\\chatglm-6b-fine-tuning\\data']
 
 all_json_path = [glob(i + "*.json") for i in target_dir_list]
 all_json_path = list(chain(*all_json_path))
