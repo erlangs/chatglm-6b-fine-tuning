@@ -12,6 +12,22 @@ from peft import get_peft_model, LoraConfig, TaskType
 import torch
 
 
+def tokenize(element):
+    context_length = 512
+    outputs = tokenizer(
+        element["content"],
+        truncation=True,
+        max_length=context_length,
+        return_overflowing_tokens=True,
+        return_length=True,
+    )
+    input_batch = []
+    for length, input_ids in zip(outputs["length"], outputs["input_ids"]):
+        if length == context_length:
+            input_batch.append(input_ids)
+    return {"input_ids": input_batch}
+
+
 def get_masks_and_position_ids(
         seq, seq_len, context_length, device, gmask=False, position_encoding_2d=True
 ):
@@ -45,32 +61,6 @@ def get_masks_and_position_ids(
     return attention_mask, position_ids
 
 
-def tokenize(element):
-    context_length = 512
-    outputs = tokenizer(
-        element["content"],
-        truncation=True,
-        max_length=context_length,
-        return_overflowing_tokens=True,
-        return_length=True,
-    )
-    input_batch = []
-    for length, input_ids in zip(outputs["length"], outputs["input_ids"]):
-        if length == context_length:
-            input_batch.append(input_ids)
-    return {"input_ids": input_batch}
-
-
-def set_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset_path', default='./data/*', type=str, required=False, help='数据集目录')
-    parser.add_argument('--model_path', default="../chatglm-6b", type=str, required=False,
-                        help='原始发布的预训练模型目录')
-    parser.add_argument('--save_model_path', default="../save_model_path", type=str, required=False,
-                        help='微调模型保存目录')
-    return parser.parse_args()
-
-
 def data_collator(features: list) -> dict:
     len_ids = [len(feature["input_ids"]) for feature in features]
     longest = max(len_ids) + 1
@@ -84,10 +74,10 @@ def data_collator(features: list) -> dict:
         labels = (
                 [-100] * (seq_len - 1)
                 + ids[(seq_len - 1):]
-                + [tokenizer.eos_token_id]
+                + [tokenizer.eop_token_id]
                 + [-100] * (longest - ids_l - 1)
         )
-        ids = ids + [tokenizer.eos_token_id] * (longest - ids_l)
+        ids = ids + [tokenizer.eop_token_id] * (longest - ids_l)
         _ids = torch.LongTensor(ids)
         attention_mask, position_ids = get_masks_and_position_ids(
             ids, seq_len, longest, _ids.device, gmask=False
@@ -108,18 +98,6 @@ def data_collator(features: list) -> dict:
     }
 
 
-def preprocess(example):
-    max_seq_length = 512
-    prompt = example["context"]
-    target = example["target"]
-    prompt_ids = tokenizer.encode(prompt, max_length=max_seq_length, truncation=True)
-    target_ids = tokenizer.encode(
-        target, max_length=max_seq_length, truncation=True, add_special_tokens=False
-    )
-    input_ids = prompt_ids + target_ids + [tokenizer.eos_token_id]
-    return {"input_ids": input_ids, "seq_len": len(prompt_ids)}
-
-
 def format_example(example: dict) -> dict:
     context = f"Instruction: {example['instruction']}\n"
     if example.get("input"):
@@ -130,6 +108,20 @@ def format_example(example: dict) -> dict:
     example['context'] = context
     example['target'] = target
     return example
+
+
+max_seq_length = 512
+
+
+def preprocess(example):
+    prompt = example["context"]
+    target = example["target"]
+    prompt_ids = tokenizer.encode(prompt, max_length=max_seq_length, truncation=True)
+    target_ids = tokenizer.encode(
+        target, max_length=max_seq_length, truncation=True, add_special_tokens=False
+    )
+    input_ids = prompt_ids + target_ids + [tokenizer.eos_token_id]
+    return {"input_ids": input_ids, "seq_len": len(prompt_ids)}
 
 
 def filter_nan(example):
@@ -157,8 +149,12 @@ class MyTrainer(Trainer):
 def start_train(run_args):
     global tokenizer
     global model
+    print(run_args)
     tokenizer = AutoTokenizer.from_pretrained(run_args.model_path, trust_remote_code=True)
-    model = AutoModel.from_pretrained(run_args.model_path, trust_remote_code=True).half().cuda()
+    if torch.cuda.is_available():
+        model = AutoModel.from_pretrained(run_args.model_path, trust_remote_code=True).half().cuda()
+    else:
+        model = AutoModel.from_pretrained(run_args.model_path, trust_remote_code=True).float()
     peft_config = LoraConfig(
         task_type=TaskType.CAUSAL_LM, inference_mode=False, r=8, lora_alpha=32, lora_dropout=0.1,
         target_modules=['query_key_value', ],
@@ -199,7 +195,7 @@ def start_train(run_args):
         lr_scheduler_type="cosine",
         learning_rate=5e-4,
         save_steps=50,
-        fp16=True,
+        fp16=run_args.fp16,
         push_to_hub=False,
         remove_unused_columns=False
     )
@@ -213,6 +209,17 @@ def start_train(run_args):
     )
     print("start train...")
     trainer.train()
+
+
+def set_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dataset_path', default='./data/*', type=str, required=False, help='数据集目录')
+    parser.add_argument('--model_path', default="../chatglm-6b", type=str, required=False,
+                        help='原始发布的预训练模型目录')
+    parser.add_argument('--save_model_path', default="../save_model_path", type=str, required=False,
+                        help='微调模型保存目录')
+    parser.add_argument('--fp16', action='store_true', help='fp16')
+    return parser.parse_args()
 
 
 if __name__ == '__main__':
